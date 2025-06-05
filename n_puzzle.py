@@ -26,7 +26,7 @@ def manathan_distance_heuristic(matrice, final_state):
         for j in range(len(final_state)):
             for ibis in range(len(matrice)):
                 for jbis in range(len(matrice)):
-                    if (matrice[ibis][jbis] == final_state[i][j]):
+                    if (matrice[ibis][jbis] == final_state[i][j] and matrice[ibis][jbis] != 0):
                         manathan_distance += abs(jbis - j) + abs(ibis - i)
                         break
     return manathan_distance
@@ -83,22 +83,25 @@ def A_star_search(matrice, heuristic):
     already = {tuple(map(tuple, matrice))}
     path = {}
     complexity_in_time = 0
-    complexity_in_size = 0
+    max_states_in_memory = 0
     start_time = time.time()
     while opened_list:
         smaller = False
         g, _, currentstate = heapq.heappop(opened_list)
-
+        complexity_in_time += 1
+        current_memory_states = len(opened_list) + len(closed_list)
+        if current_memory_states > max_states_in_memory:
+            max_states_in_memory = current_memory_states
         if (currentstate == matrice_goal):
             #ecrire toute les info a donner pour the end 
             path[g] = tuple(map(tuple, currentstate))
             end_time = time.time()
+            for i in path:
+                print(np.atleast_2d(path[i]))            
             print("Complexité(Time)", complexity_in_time)
-            print("Complexité(Size)", complexity_in_size)
+            print("Complexité(Size)", max_states_in_memory)
             print("le temps ecoulé,", round(end_time - start_time, 2), "seconds")
             print('le nombre de mouvement requis pour effectuer le puzzle: ', len(path))
-            for i in path:
-                print(np.atleast_2d(path[i]))
             return
         
            
@@ -127,7 +130,6 @@ def A_star_search(matrice, heuristic):
                 f = tentative_g + tile_misplaced_heuristic(neighboor, matrice_goal) 
             elif (heuristic == 3):
                 f = tentative_g + linear_conflit(neighboor, matrice_goal)
-            complexity_in_time += 1
             heapq.heappush(opened_list, (tentative_g, f, neighboor))
 
     return (print('pas de chemin trouvé'))
@@ -237,24 +239,26 @@ def linear_conflit(matrice, final_state):
     return manathan_distance_heuristic(matrice, final_state) + 2 * conflit
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        print("Choose between 1 : manathan_distance, 2 : Misplaced_tiles and 3 : The linear conflit")
-        valeur = input()
-        if (int(valeur) > 3 or int(valeur) < 1):
-            exit("Incorrect number in the imput value")
-        matrice = parse_args(sys.argv[1])
-        A_star_search(matrice, int(valeur))
-    elif len(sys.argv) == 1:
-        print("Choose between 1 : manathan_distance, 2 : Misplaced_tiles and 3 : The linear conflict")
-        valeur = input()
-        if (int(valeur) > 3 or int(valeur) < 1):
-            exit("Incorrect number in the imput value")
-        matrice = [[1, 2, 3],
-                   [8, 0, 4],
-                   [6, 7 ,5]]
-        A_star_search(matrice, int(valeur))
-    else:
-        print("Incorrect number of argument")
-
+    try:
+        if len(sys.argv) == 2:
+            print("Choose between 1 : manathan_distance, 2 : Misplaced_tiles and 3 : The linear conflit")
+            valeur = input()
+            if (int(valeur) > 3 or int(valeur) < 1):
+                exit("Incorrect number in the imput value")
+            matrice = parse_args(sys.argv[1])
+            A_star_search(matrice, int(valeur))
+        elif len(sys.argv) == 1:
+            print("Choose between 1 : manathan_distance, 2 : Misplaced_tiles and 3 : The linear conflict")
+            valeur = input()
+            if (int(valeur) > 3 or int(valeur) < 1):
+                exit("Incorrect number in the imput value")
+            matrice = [[1, 2, 3],
+                    [8, 0, 4],
+                    [6, 7 ,5]]
+            A_star_search(matrice, int(valeur))
+        else:
+            print("Incorrect number of argument")
+    except:
+        print('on attend un chiffre')
 
 # ajouter une complecity in size
